@@ -4,13 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jndi.JndiTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -23,21 +27,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class ModelConfig {
 	
+	@Autowired
+	private Environment env;
+	
 	@Bean
-	public DriverManagerDataSource getDataSource() {
-		
-		DriverManagerDataSource bds = new DriverManagerDataSource();
-		bds.setDriverClassName("com.mysql.cj.jdbc.Driver");
-		bds.setUrl("jdbc:mysql://localhost:3306/demoapp");
-		bds.setUsername("demoapp");
-		bds.setPassword("t3mp0r4l");
-
-		return bds;
-		
+	public DataSource getDataSource() throws NamingException {
+		return (DataSource) new JndiTemplate().lookup(env.getProperty("datasource.jndi"));
 	}
 	
 	@Bean
-	 public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+	 public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws NamingException {
 	      LocalContainerEntityManagerFactoryBean em 
 	        = new LocalContainerEntityManagerFactoryBean();
 	      em.setDataSource(getDataSource());
